@@ -4,9 +4,10 @@
 The virtual hand interface can be used in experiments where the user needs to show the subjects a specific hand movement and then asks the subject to follow the movement of the "control" hand. The predicted movement by a classifier/machine learning/... is then seen at the "prediction" hand. 
 
 # Run the application
-1) Download the "Build" folder
-2) Run the VirtualHandInterface.exe
-3) Choose Classifier (AI is not enabled for the public version)
+1) Download the repository 
+2) Open the "Build" folder within the repository
+3) Run the VirtualHandInterface.exe
+4) Choose Classifier in the application (AI is not enabled for the public version)
 
 # Stream data to the predicted hand
 The streaming interface to the predicted hand is based on the User Datagram Protocol (UDP). You can define the IP and the Port of the client (the application) on the right side of the app. Click "connect" to receive data from your software running in the background and "disconnect" to stop the incoming data. 
