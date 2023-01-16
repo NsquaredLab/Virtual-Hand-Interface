@@ -15,7 +15,7 @@ The streaming interface to the predicted hand is based on the User Datagram Prot
 ## Format of the data
 The application is written to receive a string with 9 comma separated values in the shape of an array. The values represent:
 - value 0: thumb flexion
-- value 1: thumb abbduction
+- value 1: thumb abduction
 - value 2: index flexion
 - value 3: middle flexion
 - value 4: ring flexion
