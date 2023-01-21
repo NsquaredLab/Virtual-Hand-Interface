@@ -1,4 +1,5 @@
 # Virtual Hand Interface
+Developed by Dominik I. Braun.
 
 ## What is it?
 The virtual hand interface can be used in experiments where the user needs to show the subjects a specific hand movement and then asks the subject to follow the movement of the "control" hand. The predicted movement by a classifier/machine learning/... is then seen at the "prediction" hand. 
