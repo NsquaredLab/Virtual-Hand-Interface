@@ -6,12 +6,15 @@ The virtual hand interface can be used in experiments where the user needs to sh
 
 ## Run the application
 1) Download the repository 
-2) Open the "Build" folder within the repository
-3) Run the VirtualHandInterface.exe
-4) Choose Classifier in the application (AI is not enabled for the public version)
+2) Open the "Builds" folder within the repository
+3) Select the respective folder for your OS
+4) Run the Executables
+4.1) MacOS: Run VirtualHandInterface.app
+4.2) Windows: Open Build folder and run VirtualHandInterface.exe
+6) Choose Classifier in the application
 
 ## Stream data to the predicted hand
-The streaming interface to the predicted hand is based on the User Datagram Protocol (UDP). You can define the IP and the Port of the client (the application) on the right side of the app. Click "connect" to receive data from your software running in the background and "disconnect" to stop the incoming data. 
+The streaming interface to the predicted hand is based on the User Datagram Protocol (UDP). The IP of your computer is automatically read and used as default. If you want to run the VirtualHandInterface and your sorce program on the same device, toggle the IP toggle to change to Localhost ("127.0.0.1"). Click "connect" to receive data from your software running in the background and "disconnect" to stop the incoming data. 
 
 ## Format of the data
 The application is written to receive a string with 9 comma separated values in the shape of an array. The values represent:
