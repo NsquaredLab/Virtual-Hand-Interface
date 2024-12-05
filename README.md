@@ -11,9 +11,9 @@ Find more information in the [Wiki](https://github.com/NsquaredLab/Virtual-Hand-
 2) Open the "OS" folder within the repository
 3) Select the respective folder for your OS
 4) Run the Executables
-4.1) MacOS: Run VirtualHandInterface.app
-4.2) Windows: Run VirtualHandInterface.exe
-4.3) Linux: Run VirtualHandInterface.x86_64
+4.1) MacOS: Run VirtualHandInterface.app <br>
+4.2) Windows: Run VirtualHandInterface.exe <br>
+4.3) Linux: Run VirtualHandInterface.x86_64 <br>
 
 ## License
 Distributed under the GPL-3.0 license License. See `LICENSE.txt` for more information. 
