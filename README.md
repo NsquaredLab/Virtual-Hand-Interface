@@ -20,3 +20,14 @@ Distributed under the GPL-3.0 license License. See `LICENSE.txt` for more inform
 
 ## Acknowledgments
 Hand models are based on the HTC VIVE SDK (HTC Corporation, New Taipei, Taiwan) UnityXRHandModel.
+
+## Contact
+Dominik I. Braun - dome.braun@fau.de <br> 
+Chair of Neuromuscular Physiology and Neural Interfacing | n-squared lab <br> 
+Department Artificial Intelligence in Biomedical Engineering | AIBE <br> 
+Friedrich-Alexander-Universität Erlangen-Nürnberg | FAU
+
+Alessandro Del Vecchio - alessandro.del.vecchio@fau.de <br> 
+Chair of Neuromuscular Physiology and Neural Interfacing | n-squared lab <br> 
+Department Artificial Intelligence in Biomedical Engineering | AIBE <br> 
+Friedrich-Alexander-Universität Erlangen-Nürnberg | FAU
