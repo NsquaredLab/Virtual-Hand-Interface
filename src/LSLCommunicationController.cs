@@ -248,7 +248,14 @@ public partial class LSLCommunicationController : Node
 			);
 			GD.Print("    StreamInfo created successfully");
 			
-			// Add config path to control stream description
+			// Add channel labels and config path
+			string[] channelLabels = [
+				"ThumbFlexion", "ThumbAbduction", "IndexFlexion",
+				"MiddleFlexion", "RingFlexion", "PinkyFlexion",
+				"WristFlexion", "WristAbduction", "WristRotation"
+			];
+			GD.Print($"    Setting {channelLabels.Length} channel labels...");
+			LSLWrapper.SetChannelLabels(controlInfo, channelLabels);
 			LSLWrapper.SetStreamMetadata(controlInfo, "config_file", configPath);
 
 			GD.Print("    Creating StreamOutlet...");
@@ -266,8 +273,8 @@ public partial class LSLCommunicationController : Node
 				sourceId: "predicted_hand_001"
 			);
 			GD.Print("    StreamInfo created successfully");
-			
-			// Add config path to predicted stream description
+
+			LSLWrapper.SetChannelLabels(predictedInfo, channelLabels);
 			LSLWrapper.SetStreamMetadata(predictedInfo, "config_file", configPath);
 
 			GD.Print("    Creating StreamOutlet...");

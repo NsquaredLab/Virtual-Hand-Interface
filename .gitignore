@@ -10,3 +10,7 @@
 .claude/
 .serena/
 CLAUDE.md
+build/
+.DS_Store
+VHI_godot.app/
+VHI_godot.csproj.old
