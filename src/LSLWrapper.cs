@@ -326,6 +326,56 @@ public static class LSLWrapper
 	}
 
 	/// <summary>
+	/// Set channel labels in StreamInfo description XML
+	/// </summary>
+	public static void SetChannelLabels(object streamInfo, string[] labels)
+	{
+		try
+		{
+			var descMethod = streamInfoType.GetMethod("get_Description");
+			if (descMethod == null)
+			{
+				GD.PrintErr("SetChannelLabels: get_Description method not found");
+				return;
+			}
+
+			object xmlElement = descMethod.Invoke(streamInfo, null);
+			if (xmlElement == null)
+			{
+				GD.PrintErr("SetChannelLabels: Description is null");
+				return;
+			}
+
+			var appendChildValue = xmlElement.GetType().GetMethod("AppendChild", [typeof(string), typeof(string)]);
+			var appendChildEmpty = xmlElement.GetType().GetMethod("AppendChild", [typeof(string)]);
+
+			if (appendChildEmpty == null)
+			{
+				GD.PrintErr("SetChannelLabels: AppendChild method not found");
+				return;
+			}
+
+			// Create <channels> element
+			object channelsElement = appendChildEmpty.Invoke(xmlElement, ["channels"]);
+
+			// For each label, create <channel><label>Name</label></channel>
+			var channelAppendEmpty = channelsElement.GetType().GetMethod("AppendChild", [typeof(string)]);
+			var channelAppendValue = channelsElement.GetType().GetMethod("AppendChild", [typeof(string), typeof(string)]);
+
+			foreach (string label in labels)
+			{
+				object channelElement = channelAppendEmpty.Invoke(channelsElement, ["channel"]);
+				var labelAppend = channelElement.GetType().GetMethod("AppendChild", [typeof(string), typeof(string)]);
+				labelAppend?.Invoke(channelElement, ["label", label]);
+			}
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr($"❌ Failed to set channel labels: {e.Message}");
+		}
+	}
+
+	/// <summary>
 	/// Add initial state/schema to StreamInfo metadata
 	/// </summary>
 	public static void SetStreamMetadata(object streamInfo, string fieldName, string value)
