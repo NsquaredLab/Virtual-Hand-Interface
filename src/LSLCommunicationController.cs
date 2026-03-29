@@ -42,7 +42,7 @@ public partial class LSLCommunicationController : Node
 	private int outputFrameCount = 0;
 	private float connectionRetryInterval = 5.0f;
 	private bool isConnecting = false;  // Flag to track if connection attempt is in progress
-	private readonly Lock connectionLock = new();  // Lock for thread-safe connection status
+	private readonly object connectionLock = new();  // Lock for thread-safe connection status
 
 	public override void _Ready()
 	{
