@@ -28,7 +28,7 @@ public partial class ControlHandSkeleton : Node3D
 	private Dictionary<string, float[][][]> movementPoses;
 	private string[] availableMovements;
 	private int currentMovementIndex = 0;
-	private string animationState = "waiting";  // waiting, closing, holding, opening, resting
+	private string animationState = "waiting";  // waiting, closing, holding, opening, resting, frozen
 	private float animationArgument = 0.0f;
 	private float stateTimer = 0.0f;
 	private DateTime animationStartTime;
@@ -393,12 +393,52 @@ public partial class ControlHandSkeleton : Node3D
 			// Send "Rest" via LSL when stopping
 			communicationController?.SendMovementState("Rest");
 		}
+
+		// Space - Toggle freeze (hold at max flexion)
+		if (Input.IsActionJustPressed("ui_accept"))
+		{
+			ToggleFreeze();
+		}
 	}
+
+	/// <summary>
+	/// Toggle freeze mode: holds the current movement at max flexion indefinitely.
+	/// </summary>
+	public void ToggleFreeze()
+	{
+		if (animationState == "frozen")
+		{
+			// Unfreeze - go back to waiting
+			animationState = "waiting";
+			stateTimer = 0;
+			ResetBones();
+			GD.Print($"▲ UNFREEZE movement");
+			communicationController?.SendMovementState("Rest");
+		}
+		else
+		{
+			// Freeze - snap to max flexion and hold
+			animationState = "frozen";
+			animationArgument = Mathf.Pi * 0.5f;
+			stateTimer = 0;
+			GD.Print($"■ FREEZE movement: {availableMovements[currentMovementIndex]}");
+			communicationController?.SendMovementState(availableMovements[currentMovementIndex].ToString());
+		}
+	}
+
+	public bool IsFrozen => animationState == "frozen";
 
 	private void UpdateMovementAnimation(float delta)
 	{
 		if (animationState == "waiting" || skeleton == null || movementPoses == null)
 			return;
+
+		// Frozen state: just hold at max flexion, no timer updates
+		if (animationState == "frozen")
+		{
+			animationArgument = Mathf.Pi * 0.5f;
+			// Fall through to apply poses below
+		}
 
 		string currentMovement = availableMovements[currentMovementIndex];
 		if (!movementPoses.ContainsKey(currentMovement))
@@ -613,6 +653,45 @@ public partial class ControlHandSkeleton : Node3D
 		{
 			GD.PrintErr("Config reload failed, keeping current configuration");
 		}
+	}
+
+	/// <summary>
+	/// Load a new config file, replacing the current one.
+	/// Updates ConfigFilePath, reloads movements, and re-watches the new file.
+	/// </summary>
+	public void LoadConfigFile(string absolutePath)
+	{
+		var loadedPoses = MovementConfigLoader.LoadConfig(absolutePath);
+		if (loadedPoses == null || loadedPoses.Count == 0)
+		{
+			GD.PrintErr($"Failed to load config from: {absolutePath}");
+			return;
+		}
+
+		// Convert to user:// path if inside user data dir, otherwise use globalized path
+		string userDir = ProjectSettings.GlobalizePath("user://");
+		if (absolutePath.StartsWith(userDir))
+			ConfigFilePath = "user://" + absolutePath.Substring(userDir.Length);
+		else
+			ConfigFilePath = absolutePath;
+
+		// Apply loaded movements
+		movementPoses = loadedPoses;
+		availableMovements = MovementConfigLoader.GetMovementNames(loadedPoses);
+		currentMovementIndex = 0;
+		animationState = "waiting";
+		ResetBones();
+
+		GD.Print($"Loaded config: {absolutePath} ({availableMovements.Length} movements)");
+
+		// Re-watch the new file
+		if (configWatcher != null)
+		{
+			configWatcher.EnableRaisingEvents = false;
+			configWatcher.Dispose();
+			configWatcher = null;
+		}
+		SetupConfigWatcher();
 	}
 
 	public override void _ExitTree()

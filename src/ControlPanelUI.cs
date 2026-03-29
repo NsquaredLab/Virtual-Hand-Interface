@@ -32,8 +32,13 @@ public partial class ControlPanelUI : Control
 	private Vector3 controlMeshOriginalPos;
 	private Vector3 predictedMeshOriginalPos;
 
-	// Config file button
+	// Config file buttons
 	private Button openConfigButton;
+	private Button loadConfigButton;
+	private Label configFileLabel;
+
+	// Freeze button
+	private Button freezeButton;
 
 	// UI scaling
 	private Vector2 baseResolution = new(1152, 648); // Default window size
@@ -69,8 +74,17 @@ public partial class ControlPanelUI : Control
 		// Get hand chirality toggle
 		rightHandToggle = GetNode<CheckBox>("Panel/VBoxContainer/HandChiralityGroup/RightHandToggle");
 
-		// Get config button
+		// Get config buttons
 		openConfigButton = GetNode<Button>("Panel/VBoxContainer/ConfigGroup/OpenConfigButton");
+		loadConfigButton = GetNode<Button>("Panel/VBoxContainer/ConfigGroup/LoadConfigButton");
+		configFileLabel = GetNode<Label>("Panel/VBoxContainer/ConfigGroup/ConfigFileLabel");
+
+
+		// Get freeze button
+		freezeButton = GetNode<Button>("Panel/VBoxContainer/ControlHandGroup/FreezeButton");
+
+		// Set initial config file label
+		UpdateConfigFileLabel();
 
 		// Get UI element references
 		speedSlider = GetNode<HSlider>("Panel/VBoxContainer/ControlHandGroup/SpeedContainer/SpeedSlider");
@@ -110,6 +124,8 @@ public partial class ControlPanelUI : Control
 		collapseButton.Pressed += OnCollapseToggled;
 		rightHandToggle.Toggled += OnHandChiralityToggled;
 		openConfigButton.Pressed += OnOpenConfigPressed;
+		loadConfigButton.Pressed += OnLoadConfigPressed;
+		freezeButton.Pressed += OnFreezePressed;
 	}
 
 	private void OnSpeedChanged(double value)
@@ -235,6 +251,48 @@ public partial class ControlPanelUI : Control
 
 		// Send via LSL
 		lslController.SendMenuState(json);
+	}
+
+	private void OnFreezePressed()
+	{
+		controlHand.ToggleFreeze();
+		freezeButton.Text = controlHand.IsFrozen ? "Unfreeze (Space)" : "Freeze Pose (Space)";
+	}
+
+	private void UpdateConfigFileLabel()
+	{
+		string path = controlHand.ConfigFilePath;
+		// Show just the filename
+		configFileLabel.Text = path.GetFile();
+		configFileLabel.TooltipText = ProjectSettings.GlobalizePath(path);
+	}
+
+	private void OnLoadConfigPressed()
+	{
+		string currentPath = ProjectSettings.GlobalizePath(controlHand.ConfigFilePath);
+		string dir = System.IO.Path.GetDirectoryName(currentPath);
+		if (!System.IO.Directory.Exists(dir))
+			dir = OS.GetSystemDir(OS.SystemDir.Desktop);
+
+		var callback = Callable.From<bool, string[], int>(OnNativeFileSelected);
+		DisplayServer.FileDialogShow(
+			"Load Movement Config",
+			dir,
+			"",
+			false,
+			DisplayServer.FileDialogMode.OpenFile,
+			["*.toml"],
+			callback
+		);
+	}
+
+	private void OnNativeFileSelected(bool selected, string[] paths, int filterIndex)
+	{
+		if (selected && paths.Length > 0)
+		{
+			controlHand.LoadConfigFile(paths[0]);
+			UpdateConfigFileLabel();
+		}
 	}
 
 	private void OnOpenConfigPressed()

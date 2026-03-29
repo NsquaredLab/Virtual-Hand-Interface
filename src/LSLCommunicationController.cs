@@ -42,6 +42,7 @@ public partial class LSLCommunicationController : Node
 	private int outputFrameCount = 0;
 	private float connectionRetryInterval = 5.0f;
 	private bool isConnecting = false;  // Flag to track if connection attempt is in progress
+	private volatile bool isShuttingDown = false;  // Signal background tasks to stop
 	private readonly object connectionLock = new();  // Lock for thread-safe connection status
 
 	public override void _Ready()
@@ -83,7 +84,7 @@ public partial class LSLCommunicationController : Node
 	public override void _Process(double delta)
 	{
 		// Try to connect if not connected and not already trying
-		if (predictionInlet == null && !isConnecting &&
+		if (predictionInlet == null && !isConnecting && !isShuttingDown &&
 			(DateTime.Now - lastConnectionAttempt).TotalSeconds >= connectionRetryInterval)
 		{
 			// Start connection attempt on background thread
@@ -161,11 +162,15 @@ public partial class LSLCommunicationController : Node
 	{
 		try
 		{
+			if (isShuttingDown) { lock (connectionLock) isConnecting = false; return; }
+
 			// This runs on a background thread, so use CallDeferred for GD.Print
 			CallDeferred(nameof(LogMessage), $"🔍 Searching for LSL stream: {PredictionStreamName}...");
 
 			// Only resolve by name to avoid connecting to VHI outlets
 			var availableStreams = LSLWrapper.Resolve("name", PredictionStreamName, 1.0);
+
+			if (isShuttingDown) { lock (connectionLock) isConnecting = false; return; }
 
 			if (availableStreams != null && availableStreams.Length > 0)
 			{
@@ -448,7 +453,10 @@ public partial class LSLCommunicationController : Node
 
 	public override void _ExitTree()
 	{
-		// Clean up LSL resources
+		// Signal background tasks to stop immediately
+		isShuttingDown = true;
+
+		// Dispose LSL resources — don't wait for network cleanup
 		try
 		{
 			LSLWrapper.Dispose(predictionInlet);
@@ -457,11 +465,26 @@ public partial class LSLCommunicationController : Node
 			LSLWrapper.Dispose(movementStateOutlet);
 			LSLWrapper.Dispose(menuStateOutlet);
 		}
-		catch (Exception e)
-		{
-			GD.PrintErr($"Error disposing LSL resources: {e.Message}");
-		}
+		catch (Exception) { }
 
 		GD.Print("LSL Communication Controller stopped");
+	}
+
+	public override void _Notification(int what)
+	{
+		// Force exit when the window close is requested
+		// LSL background threads can prevent clean shutdown
+		if (what == NotificationWMCloseRequest)
+		{
+			isShuttingDown = true;
+			GetTree().Quit();
+
+			// Give a moment for cleanup, then force exit
+			Task.Run(async () =>
+			{
+				await Task.Delay(1000);
+				System.Environment.Exit(0);
+			});
+		}
 	}
 }
